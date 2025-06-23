@@ -18,9 +18,12 @@ import android.app.Application;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.content.Context;
 import android.util.Log;
 import org.opendatakit.logging.WebLogger;
 import org.opendatakit.utilities.ODKFileUtils;
+
+import java.io.File;
 
 /**
  * Move some of the functionality of CommonApplication up into androidlibrary
@@ -32,6 +35,7 @@ import org.opendatakit.utilities.ODKFileUtils;
 public abstract class ToolAwareApplication extends Application implements IToolAware {
 
   private static final String t = ToolAwareApplication.class.getSimpleName();
+  public static String odkFolderPath;
 
   /**
    * Creates required directories on the SDCard (or other external storage)
@@ -54,6 +58,10 @@ public abstract class ToolAwareApplication extends Application implements IToolA
   @Override
   public void onCreate() {
     super.onCreate();
+    String appName = getToolName();
+    File internalDir = getFilesDir();
+    odkFolderPath = new File(internalDir, appName).getAbsolutePath();
+    Log.i("ToolAwareApplication", "odkAppFolderPath = " + odkFolderPath);
   }
 
   @Override

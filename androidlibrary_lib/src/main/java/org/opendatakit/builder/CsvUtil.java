@@ -16,6 +16,8 @@
 package org.opendatakit.builder;
 
 import android.content.ContentValues;
+import android.content.Context;
+
 import org.opendatakit.aggregate.odktables.rest.ConflictType;
 import org.opendatakit.aggregate.odktables.rest.ElementDataType;
 import org.opendatakit.aggregate.odktables.rest.KeyValueStoreConstants;
@@ -65,6 +67,7 @@ import java.util.UUID;
  */
 @SuppressWarnings("WeakerAccess")
 public class CsvUtil {
+
 
   private static final String TAG = CsvUtil.class.getSimpleName();
 
