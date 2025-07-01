@@ -31,6 +31,7 @@ import androidx.test.rule.GrantPermissionRule;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,9 +46,9 @@ import java.io.OutputStream;
 public class ODKScopedFileUtilsTest {
 
     private static final String ODK_FOLDER_NAME = "opendatakit";
-    private static final String EXTERNAL_DIR_PATH = "/storage/emulated/0/";
-    private static final String ODK_FOLDER_PATH = EXTERNAL_DIR_PATH + ODK_FOLDER_NAME;
+    private static final String INTERNAL_DIR_PATH = ApplicationProvider.getApplicationContext().getFilesDir().getAbsolutePath();
     private static final String PATH_SEPARATOR = "/";
+    private static final String ODK_FOLDER_PATH = INTERNAL_DIR_PATH + PATH_SEPARATOR + ODK_FOLDER_NAME;
     private static final String TEST_APP = "testApp/";
     private static final String URI_FRAGMENT = "fragment1/fragment2";
     private static final String TEST_FILE_WITH_SEPARATOR = "/file.txt";
@@ -72,6 +73,11 @@ public class ODKScopedFileUtilsTest {
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             android.Manifest.permission.READ_EXTERNAL_STORAGE
     );
+
+    @BeforeClass
+    public static void onlyOnce(){
+        ODKFileUtils.resolveAppStoragePath(ApplicationProvider.getApplicationContext());
+    }
 
     @Before
     public void setUp() {

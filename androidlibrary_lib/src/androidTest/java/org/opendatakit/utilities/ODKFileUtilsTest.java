@@ -1,11 +1,14 @@
 package org.opendatakit.utilities;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import androidx.test.core.app.ApplicationProvider;
 
 /**
  * Tests for ODKFileUtils
@@ -14,6 +17,12 @@ import static org.junit.Assert.assertNotNull;
 public class ODKFileUtilsTest {
   static final String appName;
   static final File appDir;
+
+  @BeforeClass
+  public static void onlyOnce(){
+    ODKFileUtils.resolveAppStoragePath(ApplicationProvider.getApplicationContext());
+  }
+
   static {
     appName = "ODKFileUtilsTest";
     appDir = new File(ODKFileUtils.getAppFolder(appName));
