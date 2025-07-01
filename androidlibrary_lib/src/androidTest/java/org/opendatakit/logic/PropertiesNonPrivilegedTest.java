@@ -61,7 +61,6 @@ public class PropertiesNonPrivilegedTest {
 
     @Before
     public void setUp() {
-        ODKFileUtils.verifyExternalStorageAvailability();
         ODKFileUtils.assertDirectoryStructure(APPNAME);
 
         StaticStateManipulator.get().reset();

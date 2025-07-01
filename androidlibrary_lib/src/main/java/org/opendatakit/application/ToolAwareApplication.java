@@ -45,8 +45,6 @@ public abstract class ToolAwareApplication extends Application implements IToolA
    */
   public static void createODKDirs(String appName) throws RuntimeException {
 
-    ODKFileUtils.verifyExternalStorageAvailability();
-
     ODKFileUtils.assertDirectoryStructure(appName);
   }
 

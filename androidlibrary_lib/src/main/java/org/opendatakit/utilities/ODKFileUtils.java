@@ -268,18 +268,6 @@ public final class ODKFileUtils {
   }
 
   /**
-   * Throws an exception if there is no sd card available
-   */
-  public static void verifyExternalStorageAvailability() {
-
-    File odkDir = new File(getOdkFolder());
-    if (!odkDir.exists() || !odkDir.isDirectory()) {
-      throw new IllegalStateException("ODK reports :: ODK folder path does not exist or is not a directory: " + getOdkFolder());
-    }
-  }
-
-
-  /**
    * Used all over the place
    *
    * @return <app specific dir>/opendatakit
@@ -340,7 +328,7 @@ public final class ODKFileUtils {
    * @param appName the app name to configure
    */
   public static void assertDirectoryStructure(String appName) {
-    String[] dirs = { getAppFolder(appName), getConfigFolder(appName), getDataFolder(appName),
+    String[] dirs = { getOdkFolder(), getAppFolder(appName), getConfigFolder(appName), getDataFolder(appName),
             getOutputFolder(appName), getSystemFolder(appName), getPermanentFolder(appName),
             // under Config
             getAssetsFolder(appName), getTablesFolder(appName),

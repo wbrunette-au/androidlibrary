@@ -118,7 +118,6 @@ class WebLoggerImpl implements WebLoggerIf {
   public synchronized void staleFileScan(long now) {
     try {
       // ensure we have the directories created...
-      ODKFileUtils.verifyExternalStorageAvailability();
       ODKFileUtils.assertDirectoryStructure(appName);
       // scan for stale logs...
       String loggingPath = ODKFileUtils.getLoggingFolder(appName);
