@@ -15,6 +15,7 @@
 
 package org.opendatakit.utilities;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
@@ -54,7 +55,10 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Static methods used for common file operations.
+ * Static methods used for common file operations.<p>
+ *
+ * Must call {@link #resolveAppStoragePath(Context)} before using this class.
+ * This is required for all file and directory operations.
  *
  * @author Carl Hartung (carlhartung@gmail.com)
  */
@@ -62,6 +66,9 @@ public final class ODKFileUtils {
   /**
    * A mapper that can read json strings into instances of the given class
    */
+
+  private static String PRIVATE_FILES_PATH;
+
   public static final ObjectMapper mapper = new ObjectMapper();
   // 2nd level -- directories
   /**
@@ -172,6 +179,21 @@ public final class ODKFileUtils {
   }
 
   /**
+   * Resolves and sets the absolute path to app's private storage directory.<p>
+   * This method must be called before any file or directory operations in this class.
+   *
+   * @param cntxt the application context used to resolve private files directory
+   * @throws IllegalArgumentException if {@code cntxt} is {@code null}
+   */
+  public static void resolveAppStoragePath(Context cntxt){
+
+    if (cntxt == null)
+      throw new IllegalArgumentException("Context must not be null");
+    else
+      PRIVATE_FILES_PATH = cntxt.getFilesDir().getAbsolutePath();
+  }
+
+  /**
    * uri on web server begins with appName.
    * construct the full file.
    * <p>
@@ -249,15 +271,10 @@ public final class ODKFileUtils {
    * Throws an exception if there is no sd card available
    */
   public static void verifyExternalStorageAvailability() {
-    String validODKPath = ToolAwareApplication.odkFolderPath;
 
-    if (validODKPath == null || validODKPath.trim().isEmpty()) {
-      throw new IllegalStateException("ODK reports :: Invalid or missing ODK folder path.");
-    }
-
-    File odkDir = new File(validODKPath);
+    File odkDir = new File(getOdkFolder());
     if (!odkDir.exists() || !odkDir.isDirectory()) {
-      throw new IllegalStateException("ODK reports :: ODK folder path does not exist or is not a directory: " + validODKPath);
+      throw new IllegalStateException("ODK reports :: ODK folder path does not exist or is not a directory: " + getOdkFolder());
     }
   }
 
@@ -265,11 +282,11 @@ public final class ODKFileUtils {
   /**
    * Used all over the place
    *
-   * @return /sdcard/opendatakit
+   * @return <app specific dir>/opendatakit
    */
   @SuppressWarnings("WeakerAccess")
   public static String getOdkFolder() {
-    return ToolAwareApplication.odkFolderPath;
+    return PRIVATE_FILES_PATH + File.separator + ODK_FOLDER_NAME;
   }
 
   /**

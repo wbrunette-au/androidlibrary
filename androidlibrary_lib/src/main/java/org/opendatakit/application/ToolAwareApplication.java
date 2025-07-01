@@ -58,10 +58,7 @@ public abstract class ToolAwareApplication extends Application implements IToolA
   @Override
   public void onCreate() {
     super.onCreate();
-    String appName = getToolName();
-    File internalDir = getFilesDir();
-    odkFolderPath = new File(internalDir, appName).getAbsolutePath();
-    Log.i("ToolAwareApplication", "odkAppFolderPath = " + odkFolderPath);
+    ODKFileUtils.resolveAppStoragePath(this);
   }
 
   @Override
