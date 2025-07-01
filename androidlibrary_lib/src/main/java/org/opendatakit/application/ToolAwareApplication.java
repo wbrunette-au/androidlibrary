@@ -35,7 +35,6 @@ import java.io.File;
 public abstract class ToolAwareApplication extends Application implements IToolAware {
 
   private static final String t = ToolAwareApplication.class.getSimpleName();
-  public static String odkFolderPath;
 
   /**
    * Creates required directories on the SDCard (or other external storage)
