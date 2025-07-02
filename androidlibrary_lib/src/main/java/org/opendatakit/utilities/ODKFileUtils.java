@@ -17,7 +17,6 @@ package org.opendatakit.utilities;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.CheckResult;
@@ -26,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.opendatakit.application.ToolAwareApplication;
 import org.opendatakit.consts.CharsetConsts;
 import org.opendatakit.logging.WebLogger;
 import org.opendatakit.provider.FormsColumns;
@@ -67,7 +65,7 @@ public final class ODKFileUtils {
    * A mapper that can read json strings into instances of the given class
    */
 
-  private static String PRIVATE_FILES_PATH;
+  private static String PRIVATE_FILES_PATH = null;
 
   public static final ObjectMapper mapper = new ObjectMapper();
   // 2nd level -- directories
@@ -185,12 +183,16 @@ public final class ODKFileUtils {
    * @param cntxt the application context used to resolve private files directory
    * @throws IllegalArgumentException if {@code cntxt} is {@code null}
    */
-  public static void resolveAppStoragePath(Context cntxt){
+  public static void resolveAppStoragePath(Context cntxt) {
 
-    if (cntxt == null)
-      throw new IllegalArgumentException("Context must not be null");
-    else
-      PRIVATE_FILES_PATH = cntxt.getFilesDir().getAbsolutePath();
+    if (PRIVATE_FILES_PATH == null) {
+      if (cntxt == null) {
+        throw new IllegalArgumentException("Context must not be null");
+      }
+      else {
+        PRIVATE_FILES_PATH = cntxt.getFilesDir().getAbsolutePath() + File.separator + ODK_FOLDER_NAME;
+      }
+    }
   }
 
   /**
@@ -273,8 +275,8 @@ public final class ODKFileUtils {
    * @return <app specific dir>/opendatakit
    */
   @SuppressWarnings("WeakerAccess")
-  public static String getOdkFolder() {
-    return PRIVATE_FILES_PATH + File.separator + ODK_FOLDER_NAME;
+  public static String getOdkxFolder() {
+    return PRIVATE_FILES_PATH;
   }
 
   /**
@@ -314,7 +316,7 @@ public final class ODKFileUtils {
    */
   @SuppressWarnings("unused")
   public static File[] getAppFolders() {
-    return new File(getOdkFolder()).listFiles(new FileFilter() {
+    return new File(getOdkxFolder()).listFiles(new FileFilter() {
 
       @Override
       public boolean accept(File pathname) {
@@ -328,7 +330,7 @@ public final class ODKFileUtils {
    * @param appName the app name to configure
    */
   public static void assertDirectoryStructure(String appName) {
-    String[] dirs = { getOdkFolder(), getAppFolder(appName), getConfigFolder(appName), getDataFolder(appName),
+    String[] dirs = { getOdkxFolder(), getAppFolder(appName), getConfigFolder(appName), getDataFolder(appName),
             getOutputFolder(appName), getSystemFolder(appName), getPermanentFolder(appName),
             // under Config
             getAssetsFolder(appName), getTablesFolder(appName),
@@ -559,7 +561,7 @@ public final class ODKFileUtils {
     if (terms.length < 1) {
       return null;
     }
-    return new File(new File(getOdkFolder()), appPath);
+    return new File(new File(getOdkxFolder()), appPath);
   }
 
   /**
@@ -568,7 +570,7 @@ public final class ODKFileUtils {
    * @return opendatakit/:app_name
    */
   public static String getAppFolder(String appName) {
-    return getOdkFolder() + File.separator + appName;
+    return getOdkxFolder() + File.separator + appName;
   }
 
   // 1st level folders
@@ -1135,7 +1137,7 @@ public final class ODKFileUtils {
     }
 
     File parent = path.getParentFile();
-    File odkDir = new File(getOdkFolder());
+    File odkDir = new File(getOdkxFolder());
     while (parent != null && !parent.equals(odkDir)) {
       path = parent;
       parent = path.getParentFile();

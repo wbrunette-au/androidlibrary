@@ -88,7 +88,7 @@ public class ODKScopedFileUtilsTest {
 
     @Test
     public void givenServicesInstalled_whenGetODKFolder_thenReturnFolderPath(){
-        assertEquals(ODK_FOLDER_PATH, ODKFileUtils.getOdkFolder());
+        assertEquals(ODK_FOLDER_PATH, ODKFileUtils.getOdkxFolder());
     }
 
     @Test
