@@ -16,16 +16,16 @@ import androidx.test.core.app.ApplicationProvider;
 
 public class ODKFileUtilsTest {
   static final String appName;
-  static final File appDir;
+  static File appDir;
 
   @BeforeClass
   public static void onlyOnce(){
     ODKFileUtils.resolveAppStoragePath(ApplicationProvider.getApplicationContext());
+    appDir = new File(ODKFileUtils.getAppFolder(appName));
   }
 
   static {
     appName = "ODKFileUtilsTest";
-    appDir = new File(ODKFileUtils.getAppFolder(appName));
   }
 
   @Test
