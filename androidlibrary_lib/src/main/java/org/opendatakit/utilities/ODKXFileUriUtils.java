@@ -4,8 +4,11 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 
+import org.opendatakit.logging.WebLogger;
+
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 public final class ODKXFileUriUtils {
 
@@ -49,10 +52,15 @@ public final class ODKXFileUriUtils {
     private static final String PRIMARY_PATH= "/document/primary:opendatakit";
 
     public static String ODKXRemainingPath(String appName, Uri uri) {
-        String pathBeginning = "/" + ODKX_FOLDER_NAME + "/" + appName;
-        String uriPath = uri.getPath();
-        if (uriPath.startsWith(pathBeginning)) {
-            return uriPath.substring(pathBeginning.length() + 1);
+        String pathBeginning = "primary:" + ODKX_FOLDER_NAME + "/" + appName;
+
+        List<String> uriParts = uri.getPathSegments();
+        int docIndex = uriParts.indexOf("document");
+
+        String uriBeginning = Uri.decode(uriParts.get(docIndex + 1));
+
+        if (uriBeginning.startsWith(pathBeginning)) {
+            return uriBeginning.substring(pathBeginning.length() + 1);
         }
         return null;
     }
