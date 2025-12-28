@@ -18,9 +18,12 @@ import android.app.Application;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.content.Context;
 import android.util.Log;
 import org.opendatakit.logging.WebLogger;
 import org.opendatakit.utilities.ODKFileUtils;
+
+import java.io.File;
 
 /**
  * Move some of the functionality of CommonApplication up into androidlibrary
@@ -42,8 +45,6 @@ public abstract class ToolAwareApplication extends Application implements IToolA
    */
   public static void createODKDirs(String appName) throws RuntimeException {
 
-    ODKFileUtils.verifyExternalStorageAvailability();
-
     ODKFileUtils.assertDirectoryStructure(appName);
   }
 
@@ -54,6 +55,7 @@ public abstract class ToolAwareApplication extends Application implements IToolA
   @Override
   public void onCreate() {
     super.onCreate();
+    ODKFileUtils.resolveAppStoragePath(this);
   }
 
   @Override

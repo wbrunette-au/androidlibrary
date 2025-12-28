@@ -15,8 +15,8 @@
 
 package org.opendatakit.utilities;
 
+import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.CheckResult;
@@ -53,7 +53,10 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Static methods used for common file operations.
+ * Static methods used for common file operations.<p>
+ *
+ * Must call {@link #resolveAppStoragePath(Context)} before using this class.
+ * This is required for all file and directory operations.
  *
  * @author Carl Hartung (carlhartung@gmail.com)
  */
@@ -61,6 +64,9 @@ public final class ODKFileUtils {
   /**
    * A mapper that can read json strings into instances of the given class
    */
+
+  private static String PRIVATE_FILES_PATH = null;
+
   public static final ObjectMapper mapper = new ObjectMapper();
   // 2nd level -- directories
   /**
@@ -101,7 +107,7 @@ public final class ODKFileUtils {
   private static final String GEO_CACHE_FOLDER_NAME = "geoCache";
   private static final String APP_CACHE_FOLDER_NAME = "appCache";
 
-  // 4th level 
+  // 4th level
 
   // under the config/tables directory...
   private static final String CSV_FOLDER_NAME = "csv";
@@ -151,23 +157,42 @@ public final class ODKFileUtils {
    */
   private static final String TABLE_SPECIFIC_DEFINITIONS_JS = "tableSpecificDefinitions.js";
   public static final Pattern VALID_INSTANCE_ID_FOLDER_NAME_PATTERN = Pattern
-      .compile("(\\p{P}|\\p{Z})");
+          .compile("(\\p{P}|\\p{Z})");
   public static final Pattern VALID_FOLDER_PATTERN = Pattern
-      .compile("^\\p{L}\\p{M}*(\\p{L}\\p{M}*|\\p{Nd}|_)+$");
+          .compile("^\\p{L}\\p{M}*(\\p{L}\\p{M}*|\\p{Nd}|_)+$");
 
   private static final Pattern FORWARD_SLASH_PATTERN = Pattern.compile("/");
   private static final Pattern FILE_SEPARATOR_PATTERN;
   static {
-	  if ( File.separator.equals("/") ) {
-		  FILE_SEPARATOR_PATTERN = Pattern.compile(File.separator);
-	  } else {
-		  FILE_SEPARATOR_PATTERN = Pattern.compile(File.separator + File.separator);
-	  }
+    if ( File.separator.equals("/") ) {
+      FILE_SEPARATOR_PATTERN = Pattern.compile(File.separator);
+    } else {
+      FILE_SEPARATOR_PATTERN = Pattern.compile(File.separator + File.separator);
+    }
   }
   /**
    * Do not instantiate this class
    */
   private ODKFileUtils() {
+  }
+
+  /**
+   * Resolves and sets the absolute path to app's private storage directory.<p>
+   * This method must be called before any file or directory operations in this class.
+   *
+   * @param cntxt the application context used to resolve private files directory
+   * @throws IllegalArgumentException if {@code cntxt} is {@code null}
+   */
+  public static void resolveAppStoragePath(Context cntxt) {
+
+    if (PRIVATE_FILES_PATH == null) {
+      if (cntxt == null) {
+        throw new IllegalArgumentException("Context must not be null");
+      }
+      else {
+        PRIVATE_FILES_PATH = cntxt.getFilesDir().getAbsolutePath() + File.separator + ODK_FOLDER_NAME;
+      }
+    }
   }
 
   /**
@@ -208,17 +233,17 @@ public final class ODKFileUtils {
     String[] parts = FORWARD_SLASH_PATTERN.split(uriFragment);
     if (parts.length > 1) {
       switch (parts[0]) {
-      case CONFIG_FOLDER_NAME:
-      case SYSTEM_FOLDER_NAME:
-      case PERMANENT_FOLDER_NAME:
-        return filename;
-      case DATA_FOLDER_NAME:
-        if (parts.length > 2 && parts[1].equals(TABLES_FOLDER_NAME)) {
+        case CONFIG_FOLDER_NAME:
+        case SYSTEM_FOLDER_NAME:
+        case PERMANENT_FOLDER_NAME:
           return filename;
-        }
-        break;
-      default:
-        // ignore;
+        case DATA_FOLDER_NAME:
+          if (parts.length > 2 && parts[1].equals(TABLES_FOLDER_NAME)) {
+            return filename;
+          }
+          break;
+        default:
+          // ignore;
       }
     }
     return null;
@@ -245,27 +270,13 @@ public final class ODKFileUtils {
   }
 
   /**
-   * Throws an exception if there is no sd card available
-   */
-  public static void verifyExternalStorageAvailability() {
-    String cardstatus = Environment.getExternalStorageState();
-    if (cardstatus.equals(Environment.MEDIA_REMOVED) || cardstatus
-        .equals(Environment.MEDIA_UNMOUNTABLE) || cardstatus.equals(Environment.MEDIA_UNMOUNTED)
-        || cardstatus.equals(Environment.MEDIA_MOUNTED_READ_ONLY) || cardstatus
-        .equals(Environment.MEDIA_SHARED)) {
-      throw new RuntimeException(
-          "ODK reports :: SDCard error: " + Environment.getExternalStorageState());
-    }
-  }
-
-  /**
    * Used all over the place
    *
-   * @return /sdcard/opendatakit
+   * @return <app specific dir>/opendatakit
    */
   @SuppressWarnings("WeakerAccess")
-  public static String getOdkFolder() {
-    return Environment.getExternalStorageDirectory().getPath() + File.separator + ODK_FOLDER_NAME;
+  public static String getOdkxFolder() {
+    return PRIVATE_FILES_PATH;
   }
 
   /**
@@ -305,7 +316,7 @@ public final class ODKFileUtils {
    */
   @SuppressWarnings("unused")
   public static File[] getAppFolders() {
-    return new File(getOdkFolder()).listFiles(new FileFilter() {
+    return new File(getOdkxFolder()).listFiles(new FileFilter() {
 
       @Override
       public boolean accept(File pathname) {
@@ -319,17 +330,17 @@ public final class ODKFileUtils {
    * @param appName the app name to configure
    */
   public static void assertDirectoryStructure(String appName) {
-    String[] dirs = { getAppFolder(appName), getConfigFolder(appName), getDataFolder(appName),
-        getOutputFolder(appName), getSystemFolder(appName), getPermanentFolder(appName),
-        // under Config
-        getAssetsFolder(appName), getTablesFolder(appName),
-        // under Data
-        getAppCacheFolder(appName), getGeoCacheFolder(appName), getWebDbFolder(appName),
-        getTableDataFolder(appName),
-        // under Output
-        getLoggingFolder(appName), getOutputCsvFolder(appName), getTablesDebugObjectFolder(appName),
-        // under System
-        getPendingDeletionTablesFolder(appName), getPendingInsertionTablesFolder(appName) };
+    String[] dirs = { getOdkxFolder(), getAppFolder(appName), getConfigFolder(appName), getDataFolder(appName),
+            getOutputFolder(appName), getSystemFolder(appName), getPermanentFolder(appName),
+            // under Config
+            getAssetsFolder(appName), getTablesFolder(appName),
+            // under Data
+            getAppCacheFolder(appName), getGeoCacheFolder(appName), getWebDbFolder(appName),
+            getTableDataFolder(appName),
+            // under Output
+            getLoggingFolder(appName), getOutputCsvFolder(appName), getTablesDebugObjectFolder(appName),
+            // under System
+            getPendingDeletionTablesFolder(appName), getPendingInsertionTablesFolder(appName) };
 
     for (String dirName : dirs) {
       File dir = new File(dirName);
@@ -422,14 +433,14 @@ public final class ODKFileUtils {
    * @param apkVersion        the version to overwrite odkAppVerisonFile with
    */
   private static void writeConfiguredOdkAppVersion(String appName, String odkAppVersionFile,
-      String apkVersion) {
+                                                   String apkVersion) {
     File versionFile = new File(getDataFolder(appName), odkAppVersionFile);
 
     if (!versionFile.exists()) {
       if (!versionFile.getParentFile().mkdirs()) {
         //throw new RuntimeException("Failed mkdirs on " + versionFile.getPath());
         WebLogger.getLogger(appName)
-            .e(TAG, "Failed mkdirs on " + versionFile.getParentFile().getPath());
+                .e(TAG, "Failed mkdirs on " + versionFile.getParentFile().getPath());
       }
     }
 
@@ -492,7 +503,7 @@ public final class ODKFileUtils {
    * @return whether the passed apk version matches the version in the file
    */
   private static boolean checkOdkAppVersion(String appName, String odkAppVersionFile,
-      String apkVersion) {
+                                            String apkVersion) {
     File versionFile = new File(getDataFolder(appName), odkAppVersionFile);
 
     if (!versionFile.exists()) {
@@ -550,7 +561,7 @@ public final class ODKFileUtils {
     if (terms.length < 1) {
       return null;
     }
-    return new File(new File(getOdkFolder()), appPath);
+    return new File(new File(getOdkxFolder()), appPath);
   }
 
   /**
@@ -559,7 +570,7 @@ public final class ODKFileUtils {
    * @return opendatakit/:app_name
    */
   public static String getAppFolder(String appName) {
-    return getOdkFolder() + File.separator + appName;
+    return getOdkxFolder() + File.separator + appName;
   }
 
   // 1st level folders
@@ -641,7 +652,7 @@ public final class ODKFileUtils {
    */
   public static String getAssetsCsvInstancesFolder(String appName, String tableId) {
     return getAssetsCsvFolder(appName) + File.separator + tableId + File.separator
-        + INSTANCES_FOLDER_NAME;
+            + INSTANCES_FOLDER_NAME;
   }
 
   /**
@@ -653,9 +664,9 @@ public final class ODKFileUtils {
    * @return :app_name/assets/csv/:table_id/instances/:instance_id
    */
   public static String getAssetsCsvInstanceFolder(String appName, String tableId,
-      String instanceId) {
+                                                  String instanceId) {
     return getAssetsCsvInstancesFolder(appName, tableId) + File.separator
-        + safeInstanceIdFolderName(instanceId);
+            + safeInstanceIdFolderName(instanceId);
   }
 
   /**
@@ -719,7 +730,7 @@ public final class ODKFileUtils {
     } else {
       if (!VALID_FOLDER_PATTERN.matcher(tableId).matches()) {
         throw new IllegalArgumentException(
-            "getFormFolder: tableId does not begin with a letter and contain only letters, digits or underscores!");
+                "getFormFolder: tableId does not begin with a letter and contain only letters, digits or underscores!");
       }
       if (FormsColumns.COMMON_BASE_FORM_ID.equals(tableId)) {
         path = getAssetsFolder(appName) + File.separator + FormsColumns.COMMON_BASE_FORM_ID;
@@ -789,7 +800,7 @@ public final class ODKFileUtils {
     } else {
       if (!VALID_FOLDER_PATTERN.matcher(formId).matches()) {
         throw new IllegalArgumentException(
-            "getFormFolder: formId does not begin with a letter and contain only letters, digits or underscores!");
+                "getFormFolder: formId does not begin with a letter and contain only letters, digits or underscores!");
       }
       return getFormsFolder(appName, tableId) + File.separator + formId;
     }
@@ -884,7 +895,7 @@ public final class ODKFileUtils {
   public static String getInstancesFolder(String appName, String tableId) {
     String path;
     path = getTableDataFolder(appName) + File.separator + tableId + File.separator
-        + INSTANCES_FOLDER_NAME;
+            + INSTANCES_FOLDER_NAME;
 
     File f = new File(path);
     if (!f.exists() && !f.mkdirs()) {
@@ -896,7 +907,7 @@ public final class ODKFileUtils {
   private static String safeInstanceIdFolderName(String instanceId) {
     if (instanceId == null || instanceId.isEmpty()) {
       throw new IllegalArgumentException(
-          "getInstanceFolder: instanceId is null or the empty string!");
+              "getInstanceFolder: instanceId is null or the empty string!");
     } else {
       return VALID_INSTANCE_ID_FOLDER_NAME_PATTERN.matcher(instanceId).replaceAll("_");
     }
@@ -932,7 +943,7 @@ public final class ODKFileUtils {
    * @return the filename of the rowpath
    */
   public static File getRowpathFile(String appName, String tableId, String instanceId,
-      String rowpathUri) {
+                                    String rowpathUri) {
     // clean up the value...
     if (rowpathUri.startsWith("/")) {
       rowpathUri = rowpathUri.substring(1);
@@ -943,7 +954,7 @@ public final class ODKFileUtils {
     if (rowpathUri.startsWith(instanceUri)) {
       // legacy construction
       WebLogger.getLogger(appName)
-          .e(TAG, "table [" + tableId + "] contains old-style rowpath constructs!");
+              .e(TAG, "table [" + tableId + "] contains old-style rowpath constructs!");
       fileUri = rowpathUri;
     } else {
       fileUri = instanceUri + "/" + rowpathUri;
@@ -963,13 +974,13 @@ public final class ODKFileUtils {
    */
   @SuppressWarnings("unused")
   public static String asRowpathUri(String appName, String tableId, String instanceId,
-      File rowFile) {
+                                    File rowFile) {
     String instanceFolder = ODKFileUtils.getInstanceFolder(appName, tableId, instanceId);
     String instanceUri = ODKFileUtils.asUriFragment(appName, new File(instanceFolder));
     String rowpathUri = ODKFileUtils.asUriFragment(appName, rowFile);
     if (!rowpathUri.startsWith(instanceUri)) {
       throw new IllegalArgumentException(
-          "asRowpathUri -- rowFile is not in a valid rowpath location!");
+              "asRowpathUri -- rowFile is not in a valid rowpath location!");
     }
     String relativeUri = rowpathUri.substring(instanceUri.length());
     if (relativeUri.startsWith("/")) {
@@ -1022,9 +1033,9 @@ public final class ODKFileUtils {
    * @return :app_name/output/csv/:table_id/instances/:instance_id
    */
   public static String getOutputCsvInstanceFolder(String appName, String tableId,
-      String instanceId) {
+                                                  String instanceId) {
     return getOutputCsvFolder(appName) + File.separator + tableId + File.separator
-        + INSTANCES_FOLDER_NAME + File.separator + safeInstanceIdFolderName(instanceId);
+            + INSTANCES_FOLDER_NAME + File.separator + safeInstanceIdFolderName(instanceId);
   }
 
   /**
@@ -1036,7 +1047,7 @@ public final class ODKFileUtils {
    */
   public static String getOutputTableCsvFile(String appName, String tableId, String fileQualifier) {
     return getOutputCsvFolder(appName) + File.separator + tableId + (
-        fileQualifier != null && !fileQualifier.isEmpty() ? "." + fileQualifier : "") + ".csv";
+            fileQualifier != null && !fileQualifier.isEmpty() ? "." + fileQualifier : "") + ".csv";
   }
 
   /**
@@ -1047,10 +1058,10 @@ public final class ODKFileUtils {
    * @return :app_name/output/csv/:table_id(.:file_qualifier).definition.csv
    */
   public static String getOutputTableDefinitionCsvFile(String appName, String tableId,
-      String fileQualifier) {
+                                                       String fileQualifier) {
     return getOutputCsvFolder(appName) + File.separator + tableId + (
-        fileQualifier != null && !fileQualifier.isEmpty() ? "." + fileQualifier : "") + "."
-        + DEFINITION_CSV;
+            fileQualifier != null && !fileQualifier.isEmpty() ? "." + fileQualifier : "") + "."
+            + DEFINITION_CSV;
   }
 
   /**
@@ -1061,10 +1072,10 @@ public final class ODKFileUtils {
    * @return :app_name/output/csv/:table_id(.:file_qualifier).properties.csv
    */
   public static String getOutputTablePropertiesCsvFile(String appName, String tableId,
-      String fileQualifier) {
+                                                       String fileQualifier) {
     return getOutputCsvFolder(appName) + File.separator + tableId + (
-        fileQualifier != null && !fileQualifier.isEmpty() ? "." + fileQualifier : "") + "."
-        + PROPERTIES_CSV;
+            fileQualifier != null && !fileQualifier.isEmpty() ? "." + fileQualifier : "") + "."
+            + PROPERTIES_CSV;
   }
 
   ////////////////////////////////////////
@@ -1126,7 +1137,7 @@ public final class ODKFileUtils {
     }
 
     File parent = path.getParentFile();
-    File odkDir = new File(getOdkFolder());
+    File odkDir = new File(getOdkxFolder());
     while (parent != null && !parent.equals(odkDir)) {
       path = parent;
       parent = path.getParentFile();
@@ -1161,7 +1172,7 @@ public final class ODKFileUtils {
 
     if (f == null) {
       throw new IllegalArgumentException(
-          "file is not located under this appName (" + appName + ")!");
+              "file is not located under this appName (" + appName + ")!");
     }
 
     StringBuilder b = new StringBuilder();
@@ -1217,17 +1228,17 @@ public final class ODKFileUtils {
 
     if (appName == null || appName.isEmpty()) {
       throw new IllegalArgumentException("Not a valid uriFragment: " + appName + "/" + uriFragment
-          + " application not specified.");
+              + " application not specified.");
     }
     if (uriFragment == null || uriFragment.isEmpty()) {
       throw new IllegalArgumentException("Not a valid uriFragment: " + appName + "/" + uriFragment
-          + " uri path not specified.");
+              + " uri path not specified.");
     }
 
     File f = fromAppPath(appName);
     if (f == null || !f.exists() || !f.isDirectory()) {
       throw new IllegalArgumentException(
-          "Not a valid uriFragment: " + appName + "/" + uriFragment + " - invalid application.");
+              "Not a valid uriFragment: " + appName + "/" + uriFragment + " - invalid application.");
     }
 
     // build a bogus Uri so that we can let Uri encode or decode the uriFragment
@@ -1551,7 +1562,7 @@ public final class ODKFileUtils {
    */
   @SuppressWarnings("unused")
   public static Collection<File> listFiles(File directory, IOFileFilter fileFileFilter,
-      IOFileFilter directoryFilter) {
+                                           IOFileFilter directoryFilter) {
     ContextClassLoaderWrapper wrapper = new ContextClassLoaderWrapper();
     try {
       return FileUtils.listFiles(directory, fileFileFilter, directoryFilter);

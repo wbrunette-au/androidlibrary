@@ -44,12 +44,7 @@ abstract class PropertiesSingletonFactory {
   }
 
   private void verifyDirectories(String appName) {
-    try {
-      ODKFileUtils.verifyExternalStorageAvailability();
-      ODKFileUtils.assertDirectoryStructure(appName);
-    } catch (Exception ignored) {
-      throw new IllegalArgumentException("External storage not available");
-    }
+    ODKFileUtils.assertDirectoryStructure(appName);
   }
 
   /**

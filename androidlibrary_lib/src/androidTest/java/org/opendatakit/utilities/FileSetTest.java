@@ -16,9 +16,11 @@ package org.opendatakit.utilities;
 
 import android.Manifest;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.GrantPermissionRule;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.opendatakit.logging.WebLogger;
@@ -47,6 +49,11 @@ public class FileSetTest {
   public GrantPermissionRule writeRuntimePermissionRule = GrantPermissionRule .grant(Manifest.permission.WRITE_EXTERNAL_STORAGE);
   @Rule
   public GrantPermissionRule readtimePermissionRule = GrantPermissionRule .grant(Manifest.permission.READ_EXTERNAL_STORAGE);
+
+  @BeforeClass
+  public static void onlyOnce(){
+    ODKFileUtils.resolveAppStoragePath(ApplicationProvider.getApplicationContext());
+  }
 
   @Before
   public void setUp() {

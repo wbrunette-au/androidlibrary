@@ -33,7 +33,6 @@ class WebLoggerFactoryImpl implements WebLoggerFactoryIf {
 
       // ensure we have the directories created...
       try {
-        ODKFileUtils.verifyExternalStorageAvailability();
         ODKFileUtils.assertDirectoryStructure(appName);
       } catch (Exception e) {
         Log.e("WebLoggerFactoryImpl", "Unable to create logging directory");

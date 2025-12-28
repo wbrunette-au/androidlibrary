@@ -1,5 +1,6 @@
 package org.opendatakit.utilities;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -7,16 +8,24 @@ import java.io.File;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import androidx.test.core.app.ApplicationProvider;
+
 /**
  * Tests for ODKFileUtils
  */
 
 public class ODKFileUtilsTest {
   static final String appName;
-  static final File appDir;
+  static File appDir;
+
+  @BeforeClass
+  public static void onlyOnce(){
+    ODKFileUtils.resolveAppStoragePath(ApplicationProvider.getApplicationContext());
+    appDir = new File(ODKFileUtils.getAppFolder(appName));
+  }
+
   static {
     appName = "ODKFileUtilsTest";
-    appDir = new File(ODKFileUtils.getAppFolder(appName));
   }
 
   @Test

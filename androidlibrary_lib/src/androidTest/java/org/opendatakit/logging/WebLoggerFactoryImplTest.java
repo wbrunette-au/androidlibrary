@@ -2,10 +2,13 @@ package org.opendatakit.logging;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendatakit.utilities.ODKFileUtils;
 import static org.junit.Assert.assertTrue;
 
+
+import androidx.test.core.app.ApplicationProvider;
 
 import java.io.File;
 
@@ -13,6 +16,11 @@ public class WebLoggerFactoryImplTest {
 
     private WebLoggerFactoryImpl loggerFactory;
     private final String testAppName = "testApp";
+
+    @BeforeClass
+    public static void onlyOnce(){
+        ODKFileUtils.resolveAppStoragePath(ApplicationProvider.getApplicationContext());
+    }
 
     @Before
     public void setUp() {
